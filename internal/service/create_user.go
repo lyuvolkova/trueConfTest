@@ -3,6 +3,7 @@ package service
 import (
 	"net/http"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/go-chi/render"
@@ -18,7 +19,7 @@ type CreateUserRequest struct {
 
 func (c *CreateUserRequest) Bind(r *http.Request) error { return nil }
 
-func CreateUser(s *internal.UserStore) http.HandlerFunc {
+func CreateUser(s *internal.UserStore, sMutex *sync.Mutex) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		request := CreateUserRequest{}
 
@@ -26,6 +27,12 @@ func CreateUser(s *internal.UserStore) http.HandlerFunc {
 			_ = render.Render(w, r, ErrInvalidRequest(err))
 			return
 		}
+
+		if !sMutex.TryLock() {
+			http.Error(w, "file storage busy", http.StatusConflict)
+			return
+		}
+		defer sMutex.Unlock()
 
 		s.Increment++
 		u := internal.User{
