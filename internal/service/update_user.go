@@ -2,8 +2,6 @@ package service
 
 import (
 	"net/http"
-	"refactoring/internal"
-	"sync"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
@@ -17,7 +15,7 @@ type UpdateUserRequest struct {
 
 func (c *UpdateUserRequest) Bind(r *http.Request) error { return nil }
 
-func UpdateUser(s *internal.UserStore, sMutex *sync.Mutex) http.HandlerFunc {
+func UpdateUser(repo repo) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		request := UpdateUserRequest{}
 
@@ -27,25 +25,17 @@ func UpdateUser(s *internal.UserStore, sMutex *sync.Mutex) http.HandlerFunc {
 		}
 
 		id := chi.URLParam(r, "id")
-
-		if !sMutex.TryLock() {
-			http.Error(w, "file storage busy", http.StatusConflict)
-			return
-		}
-		defer sMutex.Unlock()
-
-		if _, ok := s.List[id]; !ok {
-			_ = render.Render(w, r, ErrInvalidRequest(UserNotFound))
-			return
-		}
-
-		u := s.List[id]
-		u.DisplayName = request.DisplayName
-		s.List[id] = u
-
-		err := storage.WriteStore(s)
+		err := repo.UpdateUser(id, request.DisplayName)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			switch err {
+			case storage.ErrUserNotFound:
+				_ = render.Render(w, r, ErrNotFound(UserNotFound))
+			case storage.ErrStorageBusy:
+				_ = render.Render(w, r, ErrConflict(err))
+			default:
+				_ = render.Render(w, r, ErrServer(err))
+			}
+			return
 		}
 
 		render.Status(r, http.StatusNoContent)

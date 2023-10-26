@@ -28,3 +28,28 @@ func ErrInvalidRequest(err error) render.Renderer {
 		ErrorText:      err.Error(),
 	}
 }
+
+func ErrServer(err error) render.Renderer {
+	return &ErrResponse{
+		Err:            err,
+		HTTPStatusCode: 500,
+		StatusText:     "Server error",
+		ErrorText:      err.Error(),
+	}
+}
+func ErrNotFound(err error) render.Renderer {
+	return &ErrResponse{
+		Err:            err,
+		HTTPStatusCode: 404,
+		StatusText:     "Not found",
+		ErrorText:      err.Error(),
+	}
+}
+func ErrConflict(err error) render.Renderer {
+	return &ErrResponse{
+		Err:            err,
+		HTTPStatusCode: 409,
+		StatusText:     "Conflict error",
+		ErrorText:      err.Error(),
+	}
+}

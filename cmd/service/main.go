@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -14,11 +13,12 @@ import (
 )
 
 func main() {
-	sMutex := new(sync.Mutex)
-	s, err := storage.ReadStore()
+	repo := storage.NewRepository()
+	err := repo.Load()
 	if err != nil {
 		log.Fatalln(err)
 	}
+
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
@@ -34,13 +34,13 @@ func main() {
 	r.Route("/api", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {
 			r.Route("/users", func(r chi.Router) {
-				r.Get("/", service.SearchUsers(s))
-				r.Post("/", service.CreateUser(s, sMutex))
+				r.Get("/", service.SearchUsers(repo))
+				r.Post("/", service.CreateUser(repo))
 
 				r.Route("/{id}", func(r chi.Router) {
-					r.Get("/", service.GetUser(s))
-					r.Patch("/", service.UpdateUser(s, sMutex))
-					r.Delete("/", service.DeleteUser(s, sMutex))
+					r.Get("/", service.GetUser(repo))
+					r.Patch("/", service.UpdateUser(repo))
+					r.Delete("/", service.DeleteUser(repo))
 				})
 			})
 		})

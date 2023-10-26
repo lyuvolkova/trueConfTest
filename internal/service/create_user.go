@@ -2,13 +2,9 @@ package service
 
 import (
 	"net/http"
-	"strconv"
-	"sync"
-	"time"
 
 	"github.com/go-chi/render"
 
-	"refactoring/internal"
 	"refactoring/internal/storage"
 )
 
@@ -19,7 +15,7 @@ type CreateUserRequest struct {
 
 func (c *CreateUserRequest) Bind(r *http.Request) error { return nil }
 
-func CreateUser(s *internal.UserStore, sMutex *sync.Mutex) http.HandlerFunc {
+func CreateUser(repo repo) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		request := CreateUserRequest{}
 
@@ -28,25 +24,15 @@ func CreateUser(s *internal.UserStore, sMutex *sync.Mutex) http.HandlerFunc {
 			return
 		}
 
-		if !sMutex.TryLock() {
-			http.Error(w, "file storage busy", http.StatusConflict)
-			return
-		}
-		defer sMutex.Unlock()
-
-		s.Increment++
-		u := internal.User{
-			CreatedAt:   time.Now(),
-			DisplayName: request.DisplayName,
-			Email:       request.DisplayName,
-		}
-
-		id := strconv.Itoa(s.Increment)
-		s.List[id] = u
-
-		err := storage.WriteStore(s)
+		id, err := repo.CreateUser(request.DisplayName, request.Email)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			switch err {
+			case storage.ErrStorageBusy:
+				_ = render.Render(w, r, ErrConflict(err))
+			default:
+				_ = render.Render(w, r, ErrServer(err))
+			}
+			return
 		}
 
 		render.Status(r, http.StatusCreated)

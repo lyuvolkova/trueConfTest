@@ -2,13 +2,17 @@ package service
 
 import (
 	"net/http"
-	"refactoring/internal"
 
 	"github.com/go-chi/render"
 )
 
-func SearchUsers(s *internal.UserStore) http.HandlerFunc {
+func SearchUsers(repo repo) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		render.JSON(w, r, s.List)
+		list, err := repo.SearchUsers()
+		if err != nil {
+			_ = render.Render(w, r, ErrServer(err))
+			return
+		}
+		render.JSON(w, r, list)
 	}
 }
