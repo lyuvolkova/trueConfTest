@@ -2,17 +2,13 @@ package service
 
 import (
 	"net/http"
+	"refactoring/internal"
 
 	"github.com/go-chi/render"
-
-	"refactoring/internal/storage"
 )
 
-func SearchUsers(w http.ResponseWriter, r *http.Request) {
-	s, err := storage.ReadStore()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+func SearchUsers(s *internal.UserStore) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		render.JSON(w, r, s.List)
 	}
-
-	render.JSON(w, r, s.List)
 }

@@ -1,7 +1,9 @@
 package main
 
 import (
+	"log"
 	"net/http"
+	"refactoring/internal/storage"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -11,6 +13,10 @@ import (
 )
 
 func main() {
+	s, err := storage.ReadStore()
+	if err != nil {
+		log.Fatalln(err)
+	}
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
@@ -26,13 +32,13 @@ func main() {
 	r.Route("/api", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {
 			r.Route("/users", func(r chi.Router) {
-				r.Get("/", service.SearchUsers)
-				r.Post("/", service.CreateUser)
+				r.Get("/", service.SearchUsers(s))
+				r.Post("/", service.CreateUser(s))
 
 				r.Route("/{id}", func(r chi.Router) {
-					r.Get("/", service.GetUser)
-					r.Patch("/", service.UpdateUser)
-					r.Delete("/", service.DeleteUser)
+					r.Get("/", service.GetUser(s))
+					r.Patch("/", service.UpdateUser(s))
+					r.Delete("/", service.DeleteUser(s))
 				})
 			})
 		})
