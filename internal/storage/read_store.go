@@ -8,9 +8,9 @@ import (
 	"refactoring/internal"
 )
 
-const store = `users.json`
+//const store = `users.json`
 
-func ReadStore() (*internal.UserStore, error) {
+func ReadStore(store string) (*internal.UserStore, error) {
 	f, err := os.ReadFile(store)
 	if err != nil {
 		return nil, fmt.Errorf("read file: %w", err)

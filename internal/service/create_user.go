@@ -15,7 +15,7 @@ type CreateUserRequest struct {
 
 func (c *CreateUserRequest) Bind(r *http.Request) error { return nil }
 
-func CreateUser(repo repo) http.HandlerFunc {
+func CreateUser(repo Repo) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		request := CreateUserRequest{}
 

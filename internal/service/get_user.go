@@ -8,7 +8,7 @@ import (
 	"github.com/go-chi/render"
 )
 
-func GetUser(repo repo) http.HandlerFunc {
+func GetUser(repo Repo) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
 		user, err := repo.GetUser(id)

@@ -15,7 +15,7 @@ type UpdateUserRequest struct {
 
 func (c *UpdateUserRequest) Bind(r *http.Request) error { return nil }
 
-func UpdateUser(repo repo) http.HandlerFunc {
+func UpdateUser(repo Repo) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		request := UpdateUserRequest{}
 

@@ -14,7 +14,7 @@ var (
 	UserNotFound = errors.New("user_not_found")
 )
 
-func DeleteUser(repo repo) http.HandlerFunc {
+func DeleteUser(repo Repo) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
 

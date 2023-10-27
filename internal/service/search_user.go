@@ -6,7 +6,7 @@ import (
 	"github.com/go-chi/render"
 )
 
-func SearchUsers(repo repo) http.HandlerFunc {
+func SearchUsers(repo Repo) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		list, err := repo.SearchUsers()
 		if err != nil {
